@@ -28,11 +28,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+
+import jakarta.annotation.security.RolesAllowed;
 import org.apache.commons.lang3.StringUtils;
 
 @PageTitle("Bewertungen")
 @Route(value = "bewertungen", layout = MainLayout.class)
-@AnonymousAllowed
+@RolesAllowed("USER")
 public class BewertungenView extends Div {
 
     private GridPro<Client> grid;
