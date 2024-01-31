@@ -8,6 +8,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -53,7 +54,9 @@ public class HelloWorldView extends VerticalLayout {
                 final var localMediumDate = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM);
                 resultDateTF.setValue(localMediumDate.format(resultDate));
             } catch (NumberFormatException nfe) {
-                Notification.show("Wochenanzahl nicht korrekt");
+                Notification n = Notification.show("Wochenanzahl nicht korrekt");
+                n.setPosition(Notification.Position.MIDDLE);
+                n.addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
         });
         calcButton.addClickShortcut(Key.ENTER);

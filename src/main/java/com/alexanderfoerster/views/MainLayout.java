@@ -6,6 +6,7 @@ import com.alexanderfoerster.views.about.AboutView;
 import com.alexanderfoerster.views.benutzer.BenutzerView;
 import com.alexanderfoerster.views.bewertungen.BewertungenView;
 import com.alexanderfoerster.views.helloworld.HelloWorldView;
+import com.alexanderfoerster.views.pruefungen.PruefungenRealView;
 import com.alexanderfoerster.views.pruefungen.PruefungenView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
@@ -159,6 +160,7 @@ public class MainLayout extends AppLayout {
                 new MenuItemInfo("Hello World", LineAwesomeIcon.GLOBE_SOLID.create(), HelloWorldView.class), //
 
                 new MenuItemInfo("Pruefungen", LineAwesomeIcon.COLUMNS_SOLID.create(), PruefungenView.class), //
+                new MenuItemInfo("PruefungenReal", LineAwesomeIcon.COLUMNS_SOLID.create(), PruefungenRealView.class), //
 
                 new MenuItemInfo("Bewertungen", LineAwesomeIcon.TH_SOLID.create(), BewertungenView.class), //
 
