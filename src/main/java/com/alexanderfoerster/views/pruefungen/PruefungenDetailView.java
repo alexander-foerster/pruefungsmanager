@@ -1,5 +1,6 @@
 package com.alexanderfoerster.views.pruefungen;
 
+import com.alexanderfoerster.commons.ExcelStreamResource;
 import com.alexanderfoerster.commons.ReadExcelError;
 import com.alexanderfoerster.data.Teilnehmer;
 import com.alexanderfoerster.data.Pruefung;
@@ -14,6 +15,7 @@ import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.notification.Notification;
@@ -30,7 +32,9 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.RolesAllowed;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.io.IOException;
@@ -50,6 +54,7 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
     private TextField anzTeilnehmer;
     private DatePicker datum;
     private Grid<Teilnehmer> grid = new Grid<>(Teilnehmer.class);
+    private StreamResource bewertungStreamResource;
 
     private final Button saveButton = new Button("Save changes");
     private final Button deleteButton = new Button("Delete entry");
@@ -205,10 +210,31 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
         fileOperations.add(teilnehmerUpload);
         add(fileOperations);
 
+        // Download area
+        var downloadArea = new VerticalLayout();
+        //bewertungStreamResource = exportExcel(teilnehmerService.saveBewertungstabelle(pruefungFromBackend));
+        //Anchor link = new Anchor(bewertungStreamResource, String.format("Download Bewertungen.xlsx"));
+        //link.getElement().setAttribute("download", true);
+        Button exportButton = new Button("Export Bewertungs-Excel");
+        exportButton.addClickListener(event -> exportExcel(teilnehmerService.saveBewertungstabelle(pruefungFromBackend)));
+
+        downloadArea.add(exportButton);
+        add(downloadArea);
 
         add(new H2("Teilnehmer"));
         grid.setColumns("matrNr", "nachname", "vorname", "note");
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         add(grid);
+    }
+
+    private void exportExcel(XSSFWorkbook saveBewertungstabelle) {
+        ExcelStreamResource resource = new ExcelStreamResource(saveBewertungstabelle, "Bewertungen.xlsx");
+        resource.setCacheTime(0); // Disable cache
+
+        Anchor anchor = new Anchor(resource, "Download Excel");
+        anchor.getElement().setAttribute("download", true);
+        anchor.getElement().getStyle().set("display", "none"); // Hide the anchor
+        UI.getCurrent().add(anchor);
+        anchor.getElement().executeJs("this.click()");
     }
 }

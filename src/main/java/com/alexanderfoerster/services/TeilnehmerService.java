@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -31,6 +32,36 @@ public class TeilnehmerService {
     private final String ANFANGS_MARKER = "startHISsheet";
     private final String END_MARKER = "endHISsheet";
 
+    public XSSFWorkbook saveBewertungstabelle(Optional<Pruefung> pruefungFromUI) {
+        final var workbook = new XSSFWorkbook();
+        var sheet = workbook.createSheet("Bewertungen");
+        var titleRow = sheet.createRow(0);
+        var cell = titleRow.createCell(0);
+
+        Pruefung pruefung;
+        if(pruefungFromUI.isEmpty()) {
+            cell.setCellValue("Keine Prüfung geladen");
+            return workbook;
+        } else
+            pruefung = pruefungFromUI.get();
+
+        cell.setCellValue("Bewertungen" + pruefung.getBezeichnung());
+
+        var rowNr = 2;
+        var teilnehmerListe = teilnehmerRepository.findAllByPruefungOrderByNachname(pruefung);
+        for(var teilnehmer : teilnehmerListe)  {
+            var row = sheet.createRow(rowNr);
+            var matrCell = row.createCell(0);
+            matrCell.setCellValue(teilnehmer.getMatrNr());
+            var nachnameCell = row.createCell(1);
+            nachnameCell.setCellValue(teilnehmer.getNachname());
+            var vornameCell = row.createCell(2);
+            vornameCell.setCellValue(teilnehmer.getVorname());
+            ++rowNr;
+        }
+        return workbook;
+    }
+
     public void loadTeilnehmerFromXLS(Pruefung pruefung, InputStream inputStream) throws ReadExcelError, IOException {
         HSSFWorkbook workbook = new HSSFWorkbook(inputStream);
         HSSFSheet sheet = workbook.getSheet("First Sheet");
@@ -43,7 +74,7 @@ public class TeilnehmerService {
             throw new ReadExcelError("Zeile 3 hat keinen Anfangmarker");
 
         // Bisherige Teilnehmer-Einträge löschen
-        List<Teilnehmer> bisherigeTeilnehmer = teilnehmerRepository.findAllByPruefung(pruefung);
+        List<Teilnehmer> bisherigeTeilnehmer = teilnehmerRepository.findAllByPruefungOrderByNachname(pruefung);
         for(var tln : bisherigeTeilnehmer)
             teilnehmerRepository.delete(tln);
 
