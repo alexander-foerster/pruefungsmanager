@@ -1,5 +1,6 @@
 package com.alexanderfoerster.views.pruefungen;
 
+import com.alexanderfoerster.Teilnehmer;
 import com.alexanderfoerster.data.Pruefung;
 import com.alexanderfoerster.services.PruefungService;
 import com.alexanderfoerster.views.MainLayout;
@@ -9,7 +10,10 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -38,6 +42,7 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
     private TextField bezeichnung;
     private TextField anzTeilnehmer;
     private DatePicker datum;
+    private Grid<Teilnehmer> grid = new Grid<>(Teilnehmer.class);
 
     private final Button saveButton = new Button("Save changes");
     private final Button deleteButton = new Button("Delete entry");
@@ -48,7 +53,8 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
     public void beforeEnter(BeforeEnterEvent event) {
         Optional<Long> pruefungsId = event.getRouteParameters().get(PRUEFUNG_ID).map(Long::parseLong);
         if(pruefungsId.isPresent()) {
-            pruefungFromBackend = pruefungService.get(pruefungsId.get());
+            pruefungFromBackend = pruefungService.getWithTeilnehmers(pruefungsId.get());
+            grid.setItems(pruefungFromBackend.get().getTeilnehmers());
         } else {
             //UI.getCurrent().navigate(PruefungenView.class);
             pruefungFromBackend = Optional.empty();
@@ -140,5 +146,10 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
         HorizontalLayout h = new HorizontalLayout();
         h.add(saveButton, deleteButton);
         add(h);
+
+        add(new H2("Teilnehmer"));
+        grid.setColumns("matrNr", "nachname", "vorname", "note");
+        grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
+        add(grid);
     }
 }

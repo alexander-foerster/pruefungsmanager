@@ -2,10 +2,12 @@ package com.alexanderfoerster.services;
 
 import com.alexanderfoerster.data.Pruefung;
 import com.alexanderfoerster.data.PruefungRepository;
+import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +22,15 @@ public class PruefungService {
 
     public Optional<Pruefung> get(Long id) {
         return repository.findById(id);
+    }
+
+    @Transactional
+    public Optional<Pruefung> getWithTeilnehmers(Long pruefungId) {
+        Optional<Pruefung> pruefung = repository.findById(pruefungId);
+        if (pruefung.isPresent()) {
+            Hibernate.initialize(pruefung.get().getTeilnehmers());
+        }
+        return pruefung;
     }
 
     public Pruefung update(Pruefung entity) {

@@ -1,10 +1,14 @@
 package com.alexanderfoerster.data;
 
+import com.alexanderfoerster.Teilnehmer;
 import com.alexanderfoerster.data.AbstractEntity;
 import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "pruefung")
@@ -12,6 +16,17 @@ public class Pruefung extends AbstractEntity {
     private LocalDate datum;
     private int anzTeilnehmer;
     private String bezeichnung;
+
+    @OneToMany(mappedBy = "pruefung")
+    private List<Teilnehmer> teilnehmers = new ArrayList<>();
+
+    public List<Teilnehmer> getTeilnehmers() {
+        return teilnehmers;
+    }
+
+    public void setTeilnehmers(List<Teilnehmer> teilnehmers) {
+        this.teilnehmers = teilnehmers;
+    }
 
     public Pruefung() {
 
