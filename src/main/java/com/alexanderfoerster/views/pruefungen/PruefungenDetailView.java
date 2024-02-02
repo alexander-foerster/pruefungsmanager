@@ -1,8 +1,10 @@
 package com.alexanderfoerster.views.pruefungen;
 
-import com.alexanderfoerster.Teilnehmer;
+import com.alexanderfoerster.commons.ReadExcelError;
+import com.alexanderfoerster.data.Teilnehmer;
 import com.alexanderfoerster.data.Pruefung;
 import com.alexanderfoerster.services.PruefungService;
+import com.alexanderfoerster.services.TeilnehmerService;
 import com.alexanderfoerster.views.MainLayout;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -19,6 +21,8 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.converter.StringToIntegerConverter;
@@ -29,6 +33,8 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Optional;
 
 @PageTitle("Prüfungsdetails")
@@ -36,6 +42,7 @@ import java.util.Optional;
 @RolesAllowed("USER")
 public class PruefungenDetailView extends VerticalLayout implements BeforeEnterObserver {
     private PruefungService pruefungService;
+    TeilnehmerService teilnehmerService;
     private final static String PRUEFUNG_ID = "pruefungID";
     private Optional<Pruefung> pruefungFromBackend = Optional.empty();
     private TextField id;
@@ -71,8 +78,9 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
         }
     }
 
-    public PruefungenDetailView(PruefungService pruefungService) {
+    public PruefungenDetailView(PruefungService pruefungService, TeilnehmerService teilnehmerService) {
         this.pruefungService = pruefungService;
+        this.teilnehmerService = teilnehmerService;
 
         add(new H1("Prüfungsdetails"));
 
@@ -143,9 +151,60 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
         });
         deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
 
-        HorizontalLayout h = new HorizontalLayout();
-        h.add(saveButton, deleteButton);
-        add(h);
+        HorizontalLayout crudButtons = new HorizontalLayout();
+        crudButtons.add(saveButton, deleteButton);
+        add(crudButtons);
+
+        MemoryBuffer memoryBuffer = new MemoryBuffer();
+        final var teilnehmerUpload = new Upload(memoryBuffer);
+
+        Button uploadButton = new Button("Upload LSF XLS file...");
+
+        teilnehmerUpload.setUploadButton(uploadButton);
+        // Disable the upload button after the file is selected
+        // Re-enable the upload button after the file is cleared
+        uploadButton.getElement()
+                .addEventListener("max-files-reached-changed", event -> {
+                    boolean maxFilesReached = event.getEventData()
+                            .getBoolean("event.detail.value");
+                    uploadButton.setEnabled(!maxFilesReached);
+                }).addEventData("event.detail.value");
+
+        teilnehmerUpload.setAcceptedFileTypes(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/vnd.ms-excel", ".xlsx", ".xls");
+
+        teilnehmerUpload.addSucceededListener(succeededEvent -> {
+            InputStream fileData = memoryBuffer.getInputStream();
+            if(pruefungFromBackend.isPresent()) {
+                try {
+                    teilnehmerService.loadTeilnehmerFromXLS(pruefungFromBackend.get(), fileData);
+                    fileData.close();
+                } catch (ReadExcelError e) {
+                    Notification n = Notification.show("Fehler beim Laden: " + e.getFehlerMeldung());
+                    n.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    n.setPosition(Notification.Position.MIDDLE);
+                } catch (IOException e) {
+                    Notification n = Notification.show("Fehler beim Laden: " + e.getLocalizedMessage());
+                    n.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    n.setPosition(Notification.Position.MIDDLE);
+                }
+
+                // Reload Pruefung
+                pruefungFromBackend = pruefungService.getWithTeilnehmers(pruefungFromBackend.get().getId());
+                grid.setItems(pruefungFromBackend.get().getTeilnehmers());
+            }
+        });
+        teilnehmerUpload.addFileRejectedListener(fileRejectedEvent -> {
+            Notification n = Notification.show("Datei konnte nicht geladen werden");
+            n.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            n.setPosition(Notification.Position.MIDDLE);
+        });
+
+        HorizontalLayout fileOperations = new HorizontalLayout();
+        fileOperations.add(teilnehmerUpload);
+        add(fileOperations);
+
 
         add(new H2("Teilnehmer"));
         grid.setColumns("matrNr", "nachname", "vorname", "note");

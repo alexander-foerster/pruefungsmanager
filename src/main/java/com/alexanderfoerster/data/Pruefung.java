@@ -1,7 +1,5 @@
 package com.alexanderfoerster.data;
 
-import com.alexanderfoerster.Teilnehmer;
-import com.alexanderfoerster.data.AbstractEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;

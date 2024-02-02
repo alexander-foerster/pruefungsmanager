@@ -1,4 +1,4 @@
-package com.alexanderfoerster;
+package com.alexanderfoerster.data;
 
 import com.alexanderfoerster.data.AbstractEntity;
 import com.alexanderfoerster.data.Pruefung;
@@ -18,6 +18,14 @@ public class Teilnehmer extends AbstractEntity {
     private String vorname;
     private String nachname;
     private double note;
+
+    public Teilnehmer() {
+        super();
+    }
+
+    public Teilnehmer(Pruefung pruefung) {
+        this.pruefung = pruefung;
+    }
 
     public Pruefung getPruefung() {
         return pruefung;
