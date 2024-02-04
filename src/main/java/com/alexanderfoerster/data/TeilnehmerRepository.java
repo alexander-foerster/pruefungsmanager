@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface TeilnehmerRepository extends JpaRepository<Teilnehmer, Long> {
     List<Teilnehmer> findAllByPruefungOrderByNachname(Pruefung pruefung);
+    void deleteAllByPruefungId(Long pruefungId);
+    int countAllByPruefung(Pruefung pruefung);
 }

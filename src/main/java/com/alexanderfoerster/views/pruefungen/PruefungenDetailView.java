@@ -184,6 +184,9 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
             if(pruefungFromBackend.isPresent()) {
                 try {
                     teilnehmerService.loadTeilnehmerFromXLS(pruefungFromBackend.get(), fileData);
+//                    Notification.show("Anzahl Teilnehmer: " + anzTeilnehmer);
+//                    pruefungFromBackend.get().setAnzTeilnehmer(anzTeilnehmer);
+//                    pruefungService.update(pruefungFromBackend.get());
                     fileData.close();
                 } catch (ReadExcelError e) {
                     Notification n = Notification.show("Fehler beim Laden: " + e.getFehlerMeldung());
@@ -197,6 +200,13 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
 
                 // Reload Pruefung
                 pruefungFromBackend = pruefungService.getWithTeilnehmers(pruefungFromBackend.get().getId());
+                if(pruefungFromBackend.isPresent()) {
+                    Pruefung pruefung = pruefungFromBackend.get();
+                    int anzTeilnehmer = pruefungService.getAnzTeilnehmer(pruefungFromBackend);
+                    pruefung.setAnzTeilnehmer(anzTeilnehmer);
+                    pruefungService.update(pruefung);
+                    binder.readBean(pruefung);
+                }
                 grid.setItems(pruefungFromBackend.get().getTeilnehmers());
             }
         });

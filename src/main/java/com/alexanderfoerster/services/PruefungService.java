@@ -2,7 +2,7 @@ package com.alexanderfoerster.services;
 
 import com.alexanderfoerster.data.Pruefung;
 import com.alexanderfoerster.data.PruefungRepository;
-import com.alexanderfoerster.data.Teilnehmer;
+import com.alexanderfoerster.data.TeilnehmerRepository;
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,16 +10,17 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class PruefungService {
     private final PruefungRepository repository;
+    private final TeilnehmerRepository teilnehmerRepository;
 
-    public PruefungService(PruefungRepository repository) {
+    public PruefungService(PruefungRepository repository, TeilnehmerRepository teilnehmerRepository) {
         this.repository = repository;
+        this.teilnehmerRepository = teilnehmerRepository;
     }
 
     public Optional<Pruefung> get(Long id) {
@@ -39,7 +40,9 @@ public class PruefungService {
         return repository.save(entity);
     }
 
+    @Transactional
     public void delete(Long id) {
+        teilnehmerRepository.deleteAllByPruefungId(id);
         repository.deleteById(id);
     }
 
@@ -59,4 +62,13 @@ public class PruefungService {
         return repository.findAll();
     }
 
+    @Transactional
+    public int getAnzTeilnehmer(Optional<Pruefung> pruefungFromBackend) {
+        if (pruefungFromBackend.isPresent()) {
+            var pruefung = pruefungFromBackend.get();
+            Hibernate.initialize(pruefung.getTeilnehmers());
+            return pruefung.getTeilnehmers().size();
+        }
+        return 0;
+    }
 }

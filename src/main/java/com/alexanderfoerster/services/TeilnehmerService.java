@@ -13,6 +13,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,6 +63,7 @@ public class TeilnehmerService {
         return workbook;
     }
 
+    @Transactional
     public void loadTeilnehmerFromXLS(Pruefung pruefung, InputStream inputStream) throws ReadExcelError, IOException {
         HSSFWorkbook workbook = new HSSFWorkbook(inputStream);
         HSSFSheet sheet = workbook.getSheet("First Sheet");
