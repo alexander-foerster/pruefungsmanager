@@ -10,6 +10,7 @@ import com.alexanderfoerster.views.MainLayout;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -28,6 +29,7 @@ import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.converter.StringToIntegerConverter;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -233,6 +235,15 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
 
         add(new H2("Teilnehmer"));
         grid.setColumns("matrNr", "nachname", "vorname", "note");
+        grid.addColumn(new ComponentRenderer<>(teilnehmer -> {
+           Checkbox teilnehmerCB = new Checkbox();
+           teilnehmerCB.setValue(teilnehmer.isBewertet());
+           teilnehmerCB.addValueChangeListener(event -> {
+              teilnehmer.setBewertet(event.getValue());
+              teilnehmerService.save(teilnehmer);
+           });
+           return teilnehmerCB;
+        })).setHeader("Bewertet").setKey("bewertet");
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         add(grid);
     }

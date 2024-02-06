@@ -30,6 +30,10 @@ public class TeilnehmerService {
         this.teilnehmerRepository = teilnehmerRepository;
     }
 
+    public Teilnehmer save(Teilnehmer teilnehmer) {
+        return teilnehmerRepository.save(teilnehmer);
+    }
+
     private final String ANFANGS_MARKER = "startHISsheet";
     private final String END_MARKER = "endHISsheet";
 

@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,6 +33,7 @@ public class PruefungService {
         Optional<Pruefung> pruefung = repository.findById(pruefungId);
         if (pruefung.isPresent()) {
             Hibernate.initialize(pruefung.get().getTeilnehmers());
+            Collections.sort(pruefung.get().getTeilnehmers());
         }
         return pruefung;
     }

@@ -9,7 +9,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "teilnehmer")
-public class Teilnehmer extends AbstractEntity {
+public class Teilnehmer extends AbstractEntity implements Comparable<Teilnehmer> {
     @ManyToOne
     @JoinColumn(name = "pruefung_id")
     private Pruefung pruefung;
@@ -18,6 +18,7 @@ public class Teilnehmer extends AbstractEntity {
     private String vorname;
     private String nachname;
     private double note;
+    private boolean bewertet;
 
     public Teilnehmer() {
         super();
@@ -65,5 +66,18 @@ public class Teilnehmer extends AbstractEntity {
 
     public void setNote(double note) {
         this.note = note;
+    }
+
+    public boolean isBewertet() {
+        return bewertet;
+    }
+
+    public void setBewertet(boolean bewertet) {
+        this.bewertet = bewertet;
+    }
+
+    @Override
+    public int compareTo(Teilnehmer o) {
+        return nachname.compareTo(o.nachname);
     }
 }
