@@ -7,6 +7,9 @@ import com.alexanderfoerster.data.Pruefung;
 import com.alexanderfoerster.services.PruefungService;
 import com.alexanderfoerster.services.TeilnehmerService;
 import com.alexanderfoerster.views.MainLayout;
+import com.vaadin.flow.component.Focusable;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.Shortcuts;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -28,6 +31,7 @@ import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.ValidationException;
+import com.vaadin.flow.data.converter.StringToDoubleConverter;
 import com.vaadin.flow.data.converter.StringToIntegerConverter;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -61,7 +65,10 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
     private final Button saveButton = new Button("Save changes");
     private final Button deleteButton = new Button("Delete entry");
 
-    private final BeanValidationBinder<Pruefung> binder;
+    private final BeanValidationBinder<Pruefung> pruefungBinder;
+
+    private Optional<Grid.Column<Teilnehmer>> currentColumn;
+    private Optional<Teilnehmer> currentItem;
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
@@ -79,7 +86,7 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
     private void updateView() {
         if(pruefungFromBackend.isPresent()) {
             id.setValue(Long.toString(pruefungFromBackend.get().getId()));
-            binder.readBean(pruefungFromBackend.get());
+            pruefungBinder.readBean(pruefungFromBackend.get());
         } else {
             id.setValue("n.a.");
         }
@@ -102,19 +109,19 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
 
         add(formLayout);
 
-        binder = new BeanValidationBinder<>(Pruefung.class);
+        pruefungBinder = new BeanValidationBinder<>(Pruefung.class);
 
-        binder.forField(anzTeilnehmer)
+        pruefungBinder.forField(anzTeilnehmer)
                         .withConverter(new StringToIntegerConverter("Please enter a number"))
                                 .bind("anzTeilnehmer");
         //binder.bind(bezeichnung, "bezeichnung");
         //binder.bind(datum, "datum");
-        binder.bindInstanceFields(this);
+        pruefungBinder.bindInstanceFields(this);
 
         saveButton.addClickListener(event -> {
             if(pruefungFromBackend.isPresent()) {
                 try {
-                    binder.writeBean(this.pruefungFromBackend.get());
+                    pruefungBinder.writeBean(this.pruefungFromBackend.get());
                     pruefungService.update(this.pruefungFromBackend.get());
                 } catch (ValidationException e) {
                     Notification n = Notification.show("Validation error");
@@ -207,7 +214,7 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
                     int anzTeilnehmer = pruefungService.getAnzTeilnehmer(pruefungFromBackend);
                     pruefung.setAnzTeilnehmer(anzTeilnehmer);
                     pruefungService.update(pruefung);
-                    binder.readBean(pruefung);
+                    pruefungBinder.readBean(pruefung);
                 }
                 grid.setItems(pruefungFromBackend.get().getTeilnehmers());
             }
@@ -234,7 +241,51 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
         add(downloadArea);
 
         add(new H2("Teilnehmer"));
-        grid.setColumns("matrNr", "nachname", "vorname", "note");
+        grid.setColumns("matrNr", "nachname", "vorname");
+
+        var binder = new BeanValidationBinder<>(Teilnehmer.class);
+        var editor = grid.getEditor();
+        editor.setBinder(binder);
+        editor.setBuffered(true);
+        editor.addSaveListener(editorSaveEvent -> {
+            Teilnehmer item = editorSaveEvent.getItem();
+            teilnehmerService.save(item);
+        });
+
+        var colNote = grid.addColumn("note");
+        var txtNote = new TextField();
+        binder.forField(txtNote)
+                .withConverter(new StringToDoubleConverter("Please enter a number"))
+                .bind("note");
+        colNote.setEditorComponent(txtNote);
+
+
+        grid.addCellFocusListener(event -> {
+            // Store the item on cell focus. Used in the ENTER ShortcutListener
+            currentItem = event.getItem();
+            // Store the current column. Used in the SelectionListener to focus the editor component
+            currentColumn = event.getColumn();
+        });
+
+        grid.addSelectionListener(event -> event.getFirstSelectedItem().ifPresent(teilnehmer -> {
+            editor.save();
+            if (!editor.isOpen()) {
+                grid.getEditor().editItem(teilnehmer);
+                currentColumn.ifPresent(column -> {
+                    if (column.getEditorComponent() instanceof Focusable<?> focusable) {
+                        focusable.focus();
+                    }
+                });
+            }
+        }));
+
+        Shortcuts.addShortcutListener(grid, event -> currentItem.ifPresent(grid::select), Key.ENTER).listenOn(grid);
+        Shortcuts.addShortcutListener(grid, () -> {
+            if (editor.isOpen()) {
+                editor.cancel();
+            }
+        }, Key.ESCAPE).listenOn(grid);
+
         grid.addColumn(new ComponentRenderer<>(teilnehmer -> {
            Checkbox teilnehmerCB = new Checkbox();
            teilnehmerCB.setValue(teilnehmer.isBewertet());

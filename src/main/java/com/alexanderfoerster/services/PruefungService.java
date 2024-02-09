@@ -61,7 +61,7 @@ public class PruefungService {
     }
 
     public List<Pruefung> listAll() {
-        return repository.findAll();
+        return repository.findAllByOrderByDatumAsc();
     }
 
     @Transactional
