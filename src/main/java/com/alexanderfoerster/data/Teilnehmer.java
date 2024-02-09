@@ -19,6 +19,7 @@ public class Teilnehmer extends AbstractEntity implements Comparable<Teilnehmer>
     private String nachname;
     private double note;
     private boolean bewertet;
+    private boolean nichtTeilgenommen = false;
 
     public Teilnehmer() {
         super();
@@ -74,6 +75,14 @@ public class Teilnehmer extends AbstractEntity implements Comparable<Teilnehmer>
 
     public void setBewertet(boolean bewertet) {
         this.bewertet = bewertet;
+    }
+
+    public boolean isNichtTeilgenommen() {
+        return nichtTeilgenommen;
+    }
+
+    public void setNichtTeilgenommen(boolean nichtTeilgenommen) {
+        this.nichtTeilgenommen = nichtTeilgenommen;
     }
 
     @Override

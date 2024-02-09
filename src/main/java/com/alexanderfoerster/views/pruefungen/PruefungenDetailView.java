@@ -287,13 +287,37 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
         }, Key.ESCAPE).listenOn(grid);
 
         grid.addColumn(new ComponentRenderer<>(teilnehmer -> {
-           Checkbox teilnehmerCB = new Checkbox();
-           teilnehmerCB.setValue(teilnehmer.isBewertet());
-           teilnehmerCB.addValueChangeListener(event -> {
-              teilnehmer.setBewertet(event.getValue());
-              teilnehmerService.save(teilnehmer);
-           });
-           return teilnehmerCB;
+            Checkbox ntDB = new Checkbox();
+            ntDB.setValue(teilnehmer.isNichtTeilgenommen());
+            ntDB.addValueChangeListener(event -> {
+                if(teilnehmer.isBewertet()) {
+                    Notification n = Notification.show("Teilnehmer wurde bereits bewertet");
+                    n.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    n.setPosition(Notification.Position.MIDDLE);
+                    ntDB.setValue(false);
+                } else {
+                    teilnehmer.setNichtTeilgenommen(event.getValue());
+                    teilnehmerService.save(teilnehmer);
+                }
+            });
+            return ntDB;
+        })).setHeader("Nicht teilgenommen").setKey("nichtTeilgenommen");
+
+        grid.addColumn(new ComponentRenderer<>(teilnehmer -> {
+            Checkbox bewertetCB = new Checkbox();
+            bewertetCB.setValue(teilnehmer.isBewertet());
+            bewertetCB.addValueChangeListener(event -> {
+               if(teilnehmer.isNichtTeilgenommen()) {
+                   Notification n = Notification.show("Teilnehmer hat nicht teilgenommen");
+                   n.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                   n.setPosition(Notification.Position.MIDDLE);
+                   bewertetCB.setValue(false);
+               } else {
+                   teilnehmer.setBewertet(event.getValue());
+                   teilnehmerService.save(teilnehmer);
+               }
+            });
+            return bewertetCB;
         })).setHeader("Bewertet").setKey("bewertet");
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         add(grid);
