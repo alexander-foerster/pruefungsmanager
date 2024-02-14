@@ -249,7 +249,14 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
         editor.setBuffered(true);
         editor.addSaveListener(editorSaveEvent -> {
             Teilnehmer item = editorSaveEvent.getItem();
-            teilnehmerService.save(item);
+            try {
+                teilnehmerService.save(item);
+            } catch (ObjectOptimisticLockingFailureException exception) {
+                Notification n = Notification.show(
+                        "Error updating the data. Somebody else has updated the record while you were making changes.");
+                n.setPosition(Notification.Position.MIDDLE);
+                n.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
         });
 
         var colNote = grid.addColumn("note");
@@ -297,7 +304,14 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
                     ntDB.setValue(false);
                 } else {
                     teilnehmer.setNichtTeilgenommen(event.getValue());
-                    teilnehmerService.save(teilnehmer);
+                    try {
+                        teilnehmerService.save(teilnehmer);
+                    } catch (ObjectOptimisticLockingFailureException exception) {
+                        Notification n = Notification.show(
+                                "Error updating the data. Somebody else has updated the record while you were making changes.");
+                        n.setPosition(Notification.Position.MIDDLE);
+                        n.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
                 }
             });
             return ntDB;
@@ -314,7 +328,14 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
                    bewertetCB.setValue(false);
                } else {
                    teilnehmer.setBewertet(event.getValue());
-                   teilnehmerService.save(teilnehmer);
+                   try {
+                       teilnehmerService.save(teilnehmer);
+                   } catch (ObjectOptimisticLockingFailureException exception) {
+                       Notification n = Notification.show(
+                               "Error updating the data. Somebody else has updated the record while you were making changes.");
+                       n.setPosition(Notification.Position.MIDDLE);
+                       n.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                   }
                }
             });
             return bewertetCB;
