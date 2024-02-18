@@ -1,9 +1,6 @@
 package com.alexanderfoerster.data;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-
+import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +11,8 @@ public class Pruefung extends AbstractEntity {
     private LocalDate datum;
     private int anzTeilnehmer;
     private String bezeichnung;
+    @Transient
+    private final int ABGABE_ZEITRAUM=6;
 
     @OneToMany(mappedBy = "pruefung")
     private List<Teilnehmer> teilnehmers = new ArrayList<>();
@@ -53,5 +52,9 @@ public class Pruefung extends AbstractEntity {
     }
     public void setBezeichnung(String bezeichnung) {
         this.bezeichnung = bezeichnung;
+    }
+    @Transient
+    public LocalDate getAbgabeZeit() {
+        return datum.plusWeeks(ABGABE_ZEITRAUM);
     }
 }
