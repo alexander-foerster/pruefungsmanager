@@ -14,6 +14,9 @@ public class Pruefung extends AbstractEntity {
     @Transient
     private final int ABGABE_ZEITRAUM=6;
 
+    @Transient
+    private final int VORLAGE_ZEITRAUM=1;
+
     @OneToMany(mappedBy = "pruefung")
     private List<Teilnehmer> teilnehmers = new ArrayList<>();
 
@@ -56,5 +59,9 @@ public class Pruefung extends AbstractEntity {
     @Transient
     public LocalDate getAbgabeZeit() {
         return datum.plusWeeks(ABGABE_ZEITRAUM);
+    }
+
+    public LocalDate getVorlageZeit() {
+        return datum.minusWeeks(VORLAGE_ZEITRAUM);
     }
 }

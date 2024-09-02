@@ -39,8 +39,10 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import jakarta.annotation.security.RolesAllowed;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.io.IOException;
@@ -213,7 +215,8 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
                     Pruefung pruefung = pruefungFromBackend.get();
                     int anzTeilnehmer = pruefungService.getAnzTeilnehmer(pruefungFromBackend);
                     pruefung.setAnzTeilnehmer(anzTeilnehmer);
-                    pruefungService.update(pruefung);
+                    pruefung = pruefungService.update(pruefung);
+                    pruefungFromBackend = Optional.of(pruefung);
                     pruefungBinder.readBean(pruefung);
                 }
                 grid.setItems(pruefungFromBackend.get().getTeilnehmers());
@@ -251,6 +254,8 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
             Teilnehmer item = editorSaveEvent.getItem();
             try {
                 teilnehmerService.save(item);
+
+                grid.getDataProvider().refreshAll();
             } catch (ObjectOptimisticLockingFailureException exception) {
                 Notification n = Notification.show(
                         "Error updating the data. Somebody else has updated the record while you were making changes.");
@@ -306,6 +311,7 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
                     teilnehmer.setNichtTeilgenommen(event.getValue());
                     try {
                         teilnehmerService.save(teilnehmer);
+                        grid.getDataProvider().refreshAll();
                     } catch (ObjectOptimisticLockingFailureException exception) {
                         Notification n = Notification.show(
                                 "Error updating the data. Somebody else has updated the record while you were making changes.");
@@ -330,6 +336,7 @@ public class PruefungenDetailView extends VerticalLayout implements BeforeEnterO
                    teilnehmer.setBewertet(event.getValue());
                    try {
                        teilnehmerService.save(teilnehmer);
+                       grid.getDataProvider().refreshAll();
                    } catch (ObjectOptimisticLockingFailureException exception) {
                        Notification n = Notification.show(
                                "Error updating the data. Somebody else has updated the record while you were making changes.");

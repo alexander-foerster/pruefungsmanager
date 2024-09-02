@@ -40,6 +40,7 @@ public class PruefungenRealView extends VerticalLayout {
         add(neuePruefungButton);
 
         grid.setColumns("datum", "bezeichnung", "anzTeilnehmer");
+        grid.addColumn(Pruefung::getVorlageZeit).setHeader("Vorlage");
         grid.addColumn(Pruefung::getAbgabeZeit).setHeader("Abgabe");
 
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
